@@ -61,11 +61,20 @@ static inline unsigned unif_random(unsigned n) {
 }
 #endif
 
+static inline int rank_to_value(int rank) {
+    return 1 << (rank + 1);
+}
+
 static inline void print_board(board_t board) {
-    int i,j;
+    int i, j, rank;
     for(i=0; i<4; i++) {
         for(j=0; j<4; j++) {
-            printf("%c", "0123456789abcdef"[(board)&0xf]);
+            rank = board & 0xf;
+            if (rank == 0) {
+                printf("     .");
+            } else {
+                printf(" %5d", rank_to_value(rank));
+            }
             board >>= 4;
         }
         printf("\n");

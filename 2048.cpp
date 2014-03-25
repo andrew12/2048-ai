@@ -121,7 +121,7 @@ static inline board_t execute_move_3(board_t board) {
 #undef DO_LINE
 
 /* Execute a move. */
-static inline board_t execute_move(int move, board_t board) {
+board_t execute_move(int move, board_t board) {
     switch(move) {
     case 0: // up
         return execute_move_0(board);
@@ -136,7 +136,7 @@ static inline board_t execute_move(int move, board_t board) {
     }
 }
 
-static inline int get_max_rank(board_t board) {
+int get_max_rank(board_t board) {
     int maxrank = 0;
     while(board) {
         int k = board & 0xf;
@@ -334,8 +334,8 @@ float score_toplevel_move(board_t board, int move) {
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_usec - start.tv_usec) / 1000000.0;
 
-    printf("Move %d: result %f: eval'd %d moves (%d cache hits, %zd cache size) in %.2f seconds (maxdepth=%d)\n", move, res,
-        state.moves_evaled, state.cachehits, state.trans_table.size(), elapsed, state.maxdepth);
+    // printf("Move %d: result %f: eval'd %d moves (%d cache hits, %zd cache size) in %.2f seconds (maxdepth=%d)\n", move, res,
+    //     state.moves_evaled, state.cachehits, state.trans_table.size(), elapsed, state.maxdepth);
 
     return res;
 }
@@ -347,8 +347,9 @@ int find_best_move(board_t board) {
     int bestmove = -1;
 
     print_board(board);
-    printf("Current scores: heur %.0f, actual %.0f\n", score_heur_board(board), score_board(board));
+    // printf("Current scores: heur %.0f, actual %.0f\n", score_heur_board(board), score_board(board));
 
+    #pragma omp parallel for
     for(move=0; move<4; move++) {
         float res = score_toplevel_move(board, move);
 
@@ -395,11 +396,11 @@ int ask_for_move(board_t board) {
 }
 
 /* Playing the game */
-static int draw_tile() {
+int draw_tile() {
     return (unif_random(10) < 9) ? 1 : 2;
 }
 
-static board_t insert_tile_rand(board_t board, int tile) {
+board_t insert_tile_rand(board_t board, int tile) {
     int num_open = 0;
     for(int i=0; i<16; i++) {
         if(((board >> (4*i)) & 0xf) == 0)
@@ -425,7 +426,7 @@ static board_t insert_tile_rand(board_t board, int tile) {
     return board;
 }
         
-static board_t initial_board() {
+board_t initial_board() {
     board_t board = 0;
 
     /* Draw initial values */
@@ -453,7 +454,7 @@ void play_game(get_move_func_t get_move) {
         if(move == 4)
             break; // no legal moves
 
-        printf("\nMove #%d, current score=%.0f\n", ++moveno, score_board(board) - scorepenalty);
+        printf("\nMove #%d, score=%.0f\n", ++moveno, score_board(board) - scorepenalty);
 
         move = get_move(board);
         if(move < 0)
@@ -473,7 +474,7 @@ void play_game(get_move_func_t get_move) {
     }
 
     print_board(board);
-    printf("\nGame over. Your score is %.0f. The highest rank you achieved was %d.\n", score_board(board) - scorepenalty, get_max_rank(board));
+    printf("\nGame over. Your score is %.0f. The highest value you achieved was %d.\n", score_board(board) - scorepenalty, rank_to_value(get_max_rank(board)));
 }
 
 int main(int argc, char **argv) {

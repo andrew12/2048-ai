@@ -9,7 +9,7 @@ import math
 import re
 
 # Enable multithreading?
-MULTITHREAD = True
+MULTITHREAD = False
 
 ailib = ctypes.CDLL('bin/2048.so')
 ailib.init_move_tables()
@@ -150,8 +150,8 @@ def rungame(args):
         if move < 0:
             break
         print "Recommended move:", movename(move)
-        do_move(ctrl, move)
-        time.sleep(0.05)
+#        do_move(ctrl, move)
+        time.sleep(0.1)
 
 if __name__ == '__main__':
     import sys
